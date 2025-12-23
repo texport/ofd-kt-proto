@@ -10,9 +10,9 @@ import "reginfo.proto";
 import "bind_taxation.proto";
 
 option optimize_for = SPEED;
-option java_package = "org.epicsquad.kkm.proto";
+option java_package = "kz.kazakhtelecom.proto.v203";
 
-package kkm.proto;
+package kz.kazakhtelecom.proto.v203;
 
 message ServiceRequest {
 

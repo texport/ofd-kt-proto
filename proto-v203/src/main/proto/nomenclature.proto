@@ -1,9 +1,9 @@
 import "common.proto";
 
 option optimize_for = SPEED;
-option java_package = "org.epicsquad.kkm.proto";
+option java_package = "kz.kazakhtelecom.proto.v203";
 
-package kkm.proto;
+package kz.kazakhtelecom.proto.v203;
 
 message NomenclatureRequest {
   required uint32 current_version = 1;

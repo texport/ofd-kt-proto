@@ -1,5 +1,5 @@
-package kkm.fd_svc.proto;
-option java_package = "org.epicsquad.kkm.updateserver.proto";
+package kz.kazakhtelecom.fd_svc.proto.v203;
+option java_package = "kz.kazakhtelecom.fd_svc.proto.v203";
 
 message VersionInfo {
   required uint32 major     = 1;
@@ -54,4 +54,3 @@ message CheckUpdatesRequest {
 message PostUpdateStatusRequest {
   required UpdateStatusInfo  info = 1;
 };
-

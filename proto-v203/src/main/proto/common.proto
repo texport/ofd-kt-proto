@@ -5,9 +5,9 @@
  */
 
 option optimize_for = SPEED;
-option java_package = "org.epicsquad.kkm.proto";
+option java_package = "kz.kazakhtelecom.proto.v203";
 
-package kkm.proto;
+package kz.kazakhtelecom.proto.v203;
 
 /**
  * @brief Дата.
