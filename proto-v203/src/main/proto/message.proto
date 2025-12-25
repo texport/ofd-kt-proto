@@ -165,6 +165,9 @@ enum ResultTypeEnum {
   /// Совпадает значение ИИН/БИН покупателя и продавца
   RESULT_TYPE_SAME_TAXPAYER_AND_CUSTOMER = 17;
 
+  /// Товар в НКТ отсутствует
+  RESULT_TYPE_ELEMENT_NOT_FOUND_BY_BARCODE = 18;
+
   /// Сервис временно недоступен.
   ///
   /// Касса должна разорвать соединение, и далее пытаться соединяться и
@@ -256,7 +259,6 @@ message Request {
   ///
   /// Данный параметр обязателен, если Request::command == ::COMMAND_AUTH.
   optional AuthRequest auth = 8;
-
 }
 
 /**

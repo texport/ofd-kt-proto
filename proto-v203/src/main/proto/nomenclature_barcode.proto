@@ -1,0 +1,18 @@
+option optimize_for = SPEED;
+option java_package = "kz.kazakhtelecom.proto.v203";
+
+package kz.kazakhtelecom.proto.v203;
+
+message NomenclatureBarcodeRequest {
+  required string barcode = 1;
+}
+
+message NomenclatureBarcodeResponse {
+  required uint64 id = 1;
+  required string barcode = 2;
+  required string ntin_cod = 3;
+  required string name_ru = 4;
+  required string name_kk = 5;
+}
+
+
