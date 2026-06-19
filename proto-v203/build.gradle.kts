@@ -1,17 +1,13 @@
 plugins {
-    kotlin("jvm") version "2.2.0"
-    id("com.google.protobuf") version "0.9.4"
+    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.protobuf)
 }
 
 group = "kz.kazakhtelecom"
 version = "2.0.3"
 
-repositories {
-    mavenCentral()
-}
-
 dependencies {
-    implementation("com.google.protobuf:protobuf-kotlin:4.27.0")
+    implementation(libs.protobuf.kotlin)
     testImplementation(kotlin("test"))
 }
 
@@ -26,10 +22,9 @@ base {
     archivesName.set("ofd-kt-proto-v203")
 }
 
-
 protobuf {
     protoc {
-        artifact = "com.google.protobuf:protoc:4.27.0"
+        artifact = "com.google.protobuf:protoc:${libs.versions.protobufJava.get()}"
     }
     generateProtoTasks {
         all().forEach { task ->
