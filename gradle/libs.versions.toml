@@ -4,14 +4,8 @@ detekt = "1.23.8"
 protobuf = "0.10.0"
 protobufJava = "4.35.1"
 
-
-
-
 [libraries]
 protobuf-kotlin = { group = "com.google.protobuf", name = "protobuf-kotlin", version.ref = "protobufJava" }
-
-
-
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
