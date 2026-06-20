@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.protobuf)
     alias(libs.plugins.detekt)
+    alias(libs.plugins.nmcp)
     `maven-publish`
     signing
 }
@@ -63,25 +64,19 @@ publishing {
             }
         }
     }
-    
-    repositories {
-        maven {
-            name = "OSSRH"
-            val releasesRepoUrl = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
-            val snapshotsRepoUrl = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
-            url = if (version.toString().endsWith("SNAPSHOT")) snapshotsRepoUrl else releasesRepoUrl
-            
-            credentials {
-                username = project.findProperty("ossrhUsername")?.toString() ?: System.getenv("OSSRH_USERNAME")
-                password = project.findProperty("ossrhPassword")?.toString() ?: System.getenv("OSSRH_PASSWORD")
-            }
-        }
-    }
 }
 
 signing {
     isRequired = false
     sign(publishing.publications["mavenJava"])
+}
+
+nmcp {
+    publishAllPublicationsToCentralPortal {
+        username.set(project.findProperty("ossrhUsername")?.toString() ?: System.getenv("OSSRH_USERNAME"))
+        password.set(project.findProperty("ossrhPassword")?.toString() ?: System.getenv("OSSRH_PASSWORD"))
+        publishingType.set("USER_MANAGED")
+    }
 }
 
 protobuf {
