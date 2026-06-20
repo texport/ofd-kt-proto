@@ -27,17 +27,27 @@ java {
     withJavadocJar()
 }
 
+tasks.withType<Javadoc>().configureEach {
+    options {
+        encoding = "UTF-8"
+        if (this is StandardJavadocDocletOptions) {
+            addStringOption("Xdoclint:none", "-quiet")
+        }
+    }
+}
+
 base {
-    archivesName.set("ofd-kt-proto-v203")
+    archivesName.set("ofd-kt-proto")
 }
 
 publishing {
     publications {
         create<MavenPublication>("mavenJava") {
             from(components["java"])
+            artifactId = "ofd-kt-proto"
             
             pom {
-                name.set("ofd-kt-proto-v203")
+                name.set("ofd-kt-proto")
                 description.set("Protobuf generated entities for KazakhTelecom OFD Protocol v2.0.3")
                 url.set("https://github.com/texport/ofd-kt-proto")
                 

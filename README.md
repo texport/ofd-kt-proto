@@ -1,6 +1,6 @@
 # ofd-kt-proto
 
-[![Maven Central](https://img.shields.io/maven-central/v/io.github.texport/ofd-kt-proto-v203.svg?label=Maven%20Central)](https://central.sonatype.com/)
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.texport/ofd-kt-proto.svg?label=Maven%20Central)](https://central.sonatype.com/)
 [![Version](https://img.shields.io/badge/version-2.0.3-blue.svg)](https://github.com/texport/ofd-kt-proto/releases)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![CI Build](https://github.com/texport/ofd-kt-proto/actions/workflows/ci.yml/badge.svg)](https://github.com/texport/ofd-kt-proto/actions)
@@ -38,7 +38,7 @@ Add the dependency to your `build.gradle.kts`:
 
 ```kotlin
 dependencies {
-    implementation("io.github.texport:ofd-kt-proto-v203:2.0.3")
+    implementation("io.github.texport:ofd-kt-proto:2.0.3")
 }
 ```
 
@@ -62,16 +62,16 @@ If you want to compile `ofd-kt-proto` directly from source alongside your main p
 Download the compiled JAR from releases and add it to your dependencies:
 ```kotlin
 dependencies {
-    implementation(files("libs/ofd-kt-proto-v203-2.0.3.jar"))
+    implementation(files("libs/ofd-kt-proto-2.0.3.jar"))
 }
 ```
 
 ### Local Build Instructions
 To build the library JAR locally:
 ```bash
-./gradlew :ofd-kt-proto-v203:build
+./gradlew :ofd-kt-proto:build
 ```
-The compiled artifact will be located at `proto-v203/build/libs/ofd-kt-proto-v203-2.0.3.jar`.
+The compiled artifact will be located at `proto-v203/build/libs/ofd-kt-proto-2.0.3.jar`.
 
 ### Adding a New Protocol Version
 1. Copy the `proto-v203` module folder to a new folder, e.g., `proto-v204`.
@@ -114,7 +114,7 @@ The compiled artifact will be located at `proto-v203/build/libs/ofd-kt-proto-v20
 
 ```kotlin
 dependencies {
-    implementation("io.github.texport:ofd-kt-proto-v203:2.0.3")
+    implementation("io.github.texport:ofd-kt-proto:2.0.3")
 }
 ```
 
@@ -138,16 +138,16 @@ dependencies {
 Скачайте собранный JAR-файл из релизов и добавьте в зависимости:
 ```kotlin
 dependencies {
-    implementation(files("libs/ofd-kt-proto-v203-2.0.3.jar"))
+    implementation(files("libs/ofd-kt-proto-2.0.3.jar"))
 }
 ```
 
 ### Сборка библиотеки локально
 Для сборки JAR-архива локально запустите команду:
 ```bash
-./gradlew :ofd-kt-proto-v203:build
+./gradlew :ofd-kt-proto:build
 ```
-Собранный файл будет находиться по пути: `proto-v203/build/libs/ofd-kt-proto-v203-2.0.3.jar`.
+Собранный файл будет находиться по пути: `proto-v203/build/libs/ofd-kt-proto-2.0.3.jar`.
 
 ### Добавление новой версии протокола
 1. Скопируйте папку модуля `proto-v203` в новую, например `proto-v204`.
