@@ -6,7 +6,7 @@ plugins {
     signing
 }
 
-group = "kz.kazakhtelecom"
+group = "kz.mybrain"
 version = "2.0.3"
 
 dependencies {

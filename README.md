@@ -1,6 +1,6 @@
 # ofd-kt-proto
 
-[![Maven Central](https://img.shields.io/maven-central/v/kz.kazakhtelecom/ofd-kt-proto-v203.svg?label=Maven%20Central)](https://central.sonatype.com/)
+[![Maven Central](https://img.shields.io/maven-central/v/kz.mybrain/ofd-kt-proto-v203.svg?label=Maven%20Central)](https://central.sonatype.com/)
 [![Version](https://img.shields.io/badge/version-2.0.3-blue.svg)](https://github.com/texport/ofd-kt-proto/releases)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![CI Build](https://github.com/texport/ofd-kt-proto/actions/workflows/ci.yml/badge.svg)](https://github.com/texport/ofd-kt-proto/actions)
@@ -8,6 +8,13 @@
 ---
 
 ### [Documentation in English](#documentation-in-english) &middot; [Документация на русском языке](#документация-на-русском-языке)
+
+---
+
+> [!IMPORTANT]
+> **Disclaimer:** This is an unofficial, community-maintained library. It is not officially endorsed by, affiliated with, or sponsored by JSC "KazakhTelecom" or the State Revenue Committee of the Republic of Kazakhstan. All product names, logos, and brands are property of their respective owners.
+> 
+> **Дисклеймер:** Данный проект является неофициальной библиотекой, поддерживаемой сообществом. Он не связан, не спонсируется и не утверждался АО «Казахтелеком» или Комитетом государственных доходов РК. Все названия продуктов, товарные знаки и логотипы принадлежат их законным владельцам.
 
 ---
 
@@ -31,7 +38,7 @@ Add the dependency to your `build.gradle.kts`:
 
 ```kotlin
 dependencies {
-    implementation("kz.kazakhtelecom:ofd-kt-proto-v203:2.0.3")
+    implementation("kz.mybrain:ofd-kt-proto-v203:2.0.3")
 }
 ```
 
@@ -46,7 +53,7 @@ If you want to compile `ofd-kt-proto` directly from source alongside your main p
 3. Declare the dependency in your main project's `build.gradle.kts`:
    ```kotlin
    dependencies {
-       implementation("kz.kazakhtelecom:ofd-kt-proto-v203:2.0.3")
+       implementation("kz.mybrain:ofd-kt-proto-v203:2.0.3")
    }
    ```
    Gradle will automatically substitute the binary dependency with your local source code module.
@@ -75,13 +82,13 @@ The compiled artifact will be located at `proto-v203/build/libs/ofd-kt-proto-v20
    project(":proto-v204").name = "ofd-kt-proto-v204"
    ```
 4. Update the package namespaces in the new module's `.proto` files to prevent package collisions:
-   - `option java_package = "kz.kazakhtelecom.proto.v204";`
-   - `package kz.kazakhtelecom.proto.v204;`
+   - `option java_package = "kz.mybrain.proto.v204";`
+   - `package kz.mybrain.proto.v204;`
 5. Rebuild the project. You can now use both versions side-by-side:
    ```kotlin
    dependencies {
-       implementation("kz.kazakhtelecom:ofd-kt-proto-v203:2.0.3")
-       implementation("kz.kazakhtelecom:ofd-kt-proto-v204:2.0.4")
+       implementation("kz.mybrain:ofd-kt-proto-v203:2.0.3")
+       implementation("kz.mybrain:ofd-kt-proto-v204:2.0.4")
    }
    ```
 
@@ -107,7 +114,7 @@ The compiled artifact will be located at `proto-v203/build/libs/ofd-kt-proto-v20
 
 ```kotlin
 dependencies {
-    implementation("kz.kazakhtelecom:ofd-kt-proto-v203:2.0.3")
+    implementation("kz.mybrain:ofd-kt-proto-v203:2.0.3")
 }
 ```
 
@@ -122,7 +129,7 @@ dependencies {
 3. В файле `build.gradle.kts` вашего основного проекта укажите зависимость:
    ```kotlin
    dependencies {
-       implementation("kz.kazakhtelecom:ofd-kt-proto-v203:2.0.3")
+       implementation("kz.mybrain:ofd-kt-proto-v203:2.0.3")
    }
    ```
    Gradle автоматически заменит бинарный артефакт локальным модулем с исходным кодом.
@@ -151,12 +158,12 @@ dependencies {
    project(":proto-v204").name = "ofd-kt-proto-v204"
    ```
 4. Обновите пространства имен в `.proto` файлах нового модуля, чтобы избежать пересечения пакетов:
-   - `option java_package = "kz.kazakhtelecom.proto.v204";`
-   - `package kz.kazakhtelecom.proto.v204;`
+   - `option java_package = "kz.mybrain.proto.v204";`
+   - `package kz.mybrain.proto.v204;`
 5. Пересоберите проект. Теперь вы можете подключать обе версии одновременно:
    ```kotlin
    dependencies {
-       implementation("kz.kazakhtelecom:ofd-kt-proto-v203:2.0.3")
-       implementation("kz.kazakhtelecom:ofd-kt-proto-v204:2.0.4")
+       implementation("kz.mybrain:ofd-kt-proto-v203:2.0.3")
+       implementation("kz.mybrain:ofd-kt-proto-v204:2.0.4")
    }
    ```
