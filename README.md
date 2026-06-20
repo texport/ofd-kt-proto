@@ -2,15 +2,14 @@
 
 [![Maven Central](https://img.shields.io/maven-central/v/kz.kazakhtelecom/ofd-kt-proto-v203.svg?label=Maven%20Central)](https://central.sonatype.com/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![CI Build](https://github.com/texport/ofd-kt-proto/actions/workflows/ci.yml/badge.svg)](https://github.com/texport/ofd-kt-proto/actions)
 
 ---
 
-### [English README](#english-documentation) &middot; [Русское описание](#русская-документация)
+### [Documentation in English](#documentation-in-english) &middot; [Документация на русском языке](#документация-на-русском-языке)
 
 ---
 
-## English Documentation
+## Documentation in English
 
 A Kotlin/Java library containing code entities generated from KazakhTelecom OFD (State Revenue Committee of the Republic of Kazakhstan) `.proto` files. 
 
@@ -86,7 +85,7 @@ The compiled artifact will be located at `proto-v203/build/libs/ofd-kt-proto-v20
 
 ---
 
-## Русская документация
+## Документация на русском языке
 
 Библиотека для использования в Java и Kotlin проектах. Содержит сущности, сгенерированные из `.proto` файлов ОФД Казахтелеком (Комитет государственных доходов РК). 
 
