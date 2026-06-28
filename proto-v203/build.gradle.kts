@@ -16,7 +16,7 @@ kotlin {
     iosX64()
     iosSimulatorArm64()
 
-    jvmToolchain(17)
+    jvmToolchain(libs.versions.java.get().toInt())
 
     sourceSets {
         commonMain {
@@ -59,12 +59,18 @@ detekt {
     config.setFrom(files("${rootDir}/config/detekt/detekt.yml"))
     buildUponDefaultConfig = true
     allRules = true
+    autoCorrect = true
+    source.setFrom(files("src/commonMain/kotlin", "src/jvmMain/kotlin", "src/iosMain/kotlin"))
 }
 
 tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
     exclude("**/build/generated/**")
     exclude("**/generated/source/proto/**")
     exclude("**/generated/source/wire/**")
+}
+
+dependencies {
+    detektPlugins(libs.detekt.formatting)
 }
 
 signing {
