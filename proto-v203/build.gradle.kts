@@ -1,6 +1,6 @@
 plugins {
-    alias(libs.plugins.kotlin.jvm)
-    alias(libs.plugins.protobuf)
+    alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.wire)
     alias(libs.plugins.detekt)
     alias(libs.plugins.nmcp)
     `maven-publish`
@@ -10,28 +10,34 @@ plugins {
 group = "io.github.texport"
 version = "2.0.3"
 
-dependencies {
-    implementation(libs.protobuf.kotlin)
-    testImplementation(kotlin("test"))
-}
-
-tasks.test {
-    useJUnitPlatform()
-}
 kotlin {
+    jvm()
+    iosArm64()
+    iosX64()
+    iosSimulatorArm64()
+
     jvmToolchain(17)
-}
 
-java {
-    withSourcesJar()
-    withJavadocJar()
-}
+    sourceSets {
+        commonMain {
+            dependencies {
+                implementation(libs.wire.runtime)
+            }
+        }
+        commonTest {
+            dependencies {
+                implementation(kotlin("test"))
+            }
+        }
+    }
 
-tasks.withType<Javadoc>().configureEach {
-    options {
-        encoding = "UTF-8"
-        if (this is StandardJavadocDocletOptions) {
-            addStringOption("Xdoclint:none", "-quiet")
+    targets.all {
+        compilations.all {
+            compileTaskProvider.configure {
+                compilerOptions {
+                    freeCompilerArgs.add("-Xexpect-actual-classes")
+                }
+            }
         }
     }
 }
@@ -40,65 +46,12 @@ base {
     archivesName.set("ofd-kt-proto")
 }
 
-publishing {
-    publications {
-        create<MavenPublication>("mavenJava") {
-            from(components["java"])
-            artifactId = "ofd-kt-proto"
-            
-            pom {
-                name.set("ofd-kt-proto")
-                description.set("Protobuf generated entities for KazakhTelecom OFD Protocol v2.0.3")
-                url.set("https://github.com/texport/ofd-kt-proto")
-                
-                licenses {
-                    license {
-                        name.set("The Apache License, Version 2.0")
-                        url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
-                    }
-                }
-                
-                developers {
-                    developer {
-                        id.set("texport")
-                        name.set("Sergey Ivanov")
-                        email.set("ivanov.sergey.ekb@gmail.com")
-                    }
-                }
-                
-                scm {
-                    connection.set("scm:git:git://github.com/texport/ofd-kt-proto.git")
-                    developerConnection.set("scm:git:ssh://github.com:texport/ofd-kt-proto.git")
-                    url.set("https://github.com/texport/ofd-kt-proto")
-                }
-            }
-        }
+wire {
+    sourcePath {
+        srcDir("src/main/proto")
     }
-}
-
-signing {
-    isRequired = false
-    sign(publishing.publications["mavenJava"])
-}
-
-nmcp {
-    publishAllPublicationsToCentralPortal {
-        username.set(project.findProperty("ossrhUsername")?.toString() ?: System.getenv("OSSRH_USERNAME"))
-        password.set(project.findProperty("ossrhPassword")?.toString() ?: System.getenv("OSSRH_PASSWORD"))
-        publishingType.set("USER_MANAGED")
-    }
-}
-
-protobuf {
-    protoc {
-        artifact = "com.google.protobuf:protoc:${libs.versions.protobufJava.get()}"
-    }
-    generateProtoTasks {
-        all().forEach { task ->
-            task.builtins {
-                create("kotlin")
-            }
-        }
+    kotlin {
+        // Generates KMP compatible classes
     }
 }
 
@@ -111,4 +64,17 @@ detekt {
 tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
     exclude("**/build/generated/**")
     exclude("**/generated/source/proto/**")
+    exclude("**/generated/source/wire/**")
+}
+
+signing {
+    isRequired = false
+}
+
+nmcp {
+    publishAllPublicationsToCentralPortal {
+        username.set(project.findProperty("ossrhUsername")?.toString() ?: System.getenv("OSSRH_USERNAME"))
+        password.set(project.findProperty("ossrhPassword")?.toString() ?: System.getenv("OSSRH_PASSWORD"))
+        publishingType.set("USER_MANAGED")
+    }
 }
