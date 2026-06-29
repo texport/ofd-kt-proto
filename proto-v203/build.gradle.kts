@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "io.github.texport"
-version = "2.0.3"
+version = "2.0.4"
 
 kotlin {
     jvm()
@@ -73,8 +73,45 @@ dependencies {
     detektPlugins(libs.detekt.formatting)
 }
 
+publishing {
+    publications.withType<MavenPublication>().configureEach {
+        val javadocJarTask = tasks.register<org.gradle.api.tasks.bundling.Jar>("${name}JavadocJar") {
+            archiveClassifier.set("javadoc")
+            archiveAppendix.set(this@configureEach.name)
+        }
+        artifact(javadocJarTask)
+        pom {
+            name.set("ofd-kt-proto")
+            description.set("Kotlin Multiplatform Protobuf definitions for KazakhTelecom OFD communication")
+            url.set("https://github.com/texport/ofd-kt-proto")
+            
+            licenses {
+                license {
+                    name.set("The Apache License, Version 2.0")
+                    url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
+                }
+            }
+            
+            developers {
+                developer {
+                    id.set("texport")
+                    name.set("Sergey Ivanov")
+                    email.set("ivanov.sergey.ekb@gmail.com")
+                }
+            }
+            
+            scm {
+                connection.set("scm:git:git://github.com/texport/ofd-kt-proto.git")
+                developerConnection.set("scm:git:ssh://github.com:texport/ofd-kt-proto.git")
+                url.set("https://github.com/texport/ofd-kt-proto")
+            }
+        }
+    }
+}
+
 signing {
     isRequired = false
+    sign(publishing.publications)
 }
 
 nmcp {
