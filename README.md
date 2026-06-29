@@ -1,7 +1,7 @@
 # ofd-kt-proto
 
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.texport/ofd-kt-proto.svg?label=Maven%20Central)](https://central.sonatype.com/artifact/io.github.texport/ofd-kt-proto)
-[![Version](https://img.shields.io/badge/version-2.0.4-blue.svg)](https://github.com/texport/ofd-kt-proto/releases)
+[![Version](https://img.shields.io/badge/version-2.0.3--1-blue.svg)](https://github.com/texport/ofd-kt-proto/releases)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![CI Build](https://img.shields.io/github/actions/workflow/status/texport/ofd-kt-proto/ci.yml?branch=main&label=CI%20Build)](https://github.com/texport/ofd-kt-proto/actions)
 
@@ -39,7 +39,7 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                implementation("io.github.texport:ofd-kt-proto:2.0.4")
+                implementation("io.github.texport:ofd-kt-proto:2.0.3-1")
             }
         }
     }
@@ -75,7 +75,7 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                implementation("io.github.texport:ofd-kt-proto:2.0.4")
+                implementation("io.github.texport:ofd-kt-proto:2.0.3-1")
             }
         }
     }
