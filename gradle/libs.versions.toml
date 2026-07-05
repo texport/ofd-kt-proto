@@ -1,9 +1,13 @@
 [versions]
 kotlin = "2.4.0"
 detekt = "1.23.8"
-nmcp = "1.5.0"
-wire = "5.1.0"
-java = "17"
+nmcp = "1.6.1"
+wire = "6.4.5"
+javaTargetCore = "17"
+kover = "0.9.8"
+androidGradlePlugin = "9.2.1"
+androidCompileSdk = "37"
+androidMinSdk = "23"
 
 [libraries]
 wire-runtime = { group = "com.squareup.wire", name = "wire-runtime", version.ref = "wire" }
@@ -11,6 +15,9 @@ detekt-formatting = { group = "io.gitlab.arturbosch.detekt", name = "detekt-form
 
 [plugins]
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+android-kotlin-multiplatform-library = { id = "com.android.kotlin.multiplatform.library", version.ref = "androidGradlePlugin" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 nmcp = { id = "com.gradleup.nmcp", version.ref = "nmcp" }
+nmcp-aggregation = { id = "com.gradleup.nmcp.aggregation", version.ref = "nmcp" }
+kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
 wire = { id = "com.squareup.wire", version.ref = "wire" }

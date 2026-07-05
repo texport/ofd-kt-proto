@@ -4,6 +4,7 @@
 [![Version](https://img.shields.io/badge/version-2.0.3--2-blue.svg)](https://github.com/texport/ofd-kt-proto/releases)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![CI Build](https://img.shields.io/github/actions/workflow/status/texport/ofd-kt-proto/ci.yml?branch=main&label=CI%20Build)](https://github.com/texport/ofd-kt-proto/actions)
+[![Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen.svg)](https://github.com/texport/ofd-kt-proto)
 
 ---
 
@@ -87,3 +88,17 @@ kotlin {
 ```bash
 ./gradlew publishToMavenLocal
 ```
+
+---
+
+## Swift Package Manager (SPM) / iOS Setup
+Because `ofd-kt-proto` is a pure Protobuf schema definition library generating common Kotlin classes via Wire, it is not distributed directly as a Swift Package Manager (SPM) XCFramework binary. 
+
+Instead, it is consumed as a dependency by the [ofd-proto-codec](https://github.com/texport/ofd-proto-codec) library which wraps these models and provides the native SPM configuration block for iOS consumers.
+
+---
+
+## Architecture Boundaries
+This library operates strictly as a data definition module containing schema contracts:
+* **Included:** Auto-generated types and message definitions representing KazakhTelecom OFD v2.0.3 objects.
+* **Delegated:** Network client sockets, logging, trilingual error localization, and business flow implementations are delegated to downstream consumers (`ofd-network-client` and `ofd-proto-codec`).

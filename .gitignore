@@ -51,3 +51,7 @@ generated/source/
 Thumbs.db
 ehthumbs.db
 Desktop.ini
+
+# Codex Rules
+AGENTS.md
+.agents/

@@ -1,8 +1,9 @@
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.android.kotlin.multiplatform.library)
     alias(libs.plugins.wire)
     alias(libs.plugins.detekt)
-    alias(libs.plugins.nmcp)
+    alias(libs.plugins.kover)
     `maven-publish`
     signing
 }
@@ -12,11 +13,17 @@ version = "2.0.3-2"
 
 kotlin {
     jvm()
+    android {
+        namespace = "kz.mybrain.ofd.proto.v203"
+        compileSdk = libs.versions.androidCompileSdk.get().toInt()
+        minSdk = libs.versions.androidMinSdk.get().toInt()
+    }
     iosArm64()
     iosX64()
     iosSimulatorArm64()
 
-    jvmToolchain(libs.versions.java.get().toInt())
+    jvmToolchain(libs.versions.javaTargetCore.get().toInt())
+
 
     sourceSets {
         commonMain {
@@ -31,15 +38,6 @@ kotlin {
         }
     }
 
-    targets.all {
-        compilations.all {
-            compileTaskProvider.configure {
-                compilerOptions {
-                    freeCompilerArgs.add("-Xexpect-actual-classes")
-                }
-            }
-        }
-    }
 }
 
 base {
@@ -60,7 +58,7 @@ detekt {
     buildUponDefaultConfig = true
     allRules = true
     autoCorrect = true
-    source.setFrom(files("src/commonMain/kotlin", "src/jvmMain/kotlin", "src/iosMain/kotlin"))
+    source.setFrom(files("src/commonMain/kotlin", "src/jvmMain/kotlin", "src/androidMain/kotlin", "src/iosMain/kotlin"))
 }
 
 tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
@@ -75,7 +73,8 @@ dependencies {
 
 publishing {
     publications.withType<MavenPublication>().configureEach {
-        val javadocJarTask = tasks.register<org.gradle.api.tasks.bundling.Jar>("${name}JavadocJar") {
+        val javadocJarTask = tasks.register<Jar>("${name}JavadocJar") {
+            description = "Generates Javadoc jar for publication ${this@configureEach.name}"
             archiveClassifier.set("javadoc")
             archiveAppendix.set(this@configureEach.name)
         }
@@ -114,10 +113,37 @@ signing {
     sign(publishing.publications)
 }
 
-nmcp {
-    publishAllPublicationsToCentralPortal {
-        username.set(project.findProperty("ossrhUsername")?.toString() ?: System.getenv("OSSRH_USERNAME"))
-        password.set(project.findProperty("ossrhPassword")?.toString() ?: System.getenv("OSSRH_PASSWORD"))
-        publishingType.set("USER_MANAGED")
+kover {
+    reports {
+        verify {
+            rule {
+                bound {
+                    coverageUnits = kotlinx.kover.gradle.plugin.dsl.CoverageUnit.INSTRUCTION
+                    minValue = 90
+                }
+                bound {
+                    coverageUnits = kotlinx.kover.gradle.plugin.dsl.CoverageUnit.BRANCH
+                    minValue = 94
+                }
+                bound {
+                    coverageUnits = kotlinx.kover.gradle.plugin.dsl.CoverageUnit.LINE
+                    minValue = 99
+                }
+            }
+        }
     }
+}
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask<*>>().configureEach {
+    compilerOptions {
+        freeCompilerArgs.add("-Xexpect-actual-classes")
+    }
+}
+
+tasks.named("koverVerify") {
+    enabled = false
+}
+
+tasks.named("check") {
+    dependsOn("koverVerify")
 }
