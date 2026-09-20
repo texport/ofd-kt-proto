@@ -1,0 +1,26 @@
+syntax = "proto2";
+
+option java_package = "kz.bfd.proto.v204";
+package kz.bfd.proto.v204;
+
+enum TaxTypeEnum {
+  VAT = 100;
+}
+
+enum TaxationTypeEnum {
+  reserved 103; // reserved с версии 204
+  reserved "TRBP"; // reserved с версии 204
+  STS = 100;
+  RTS = 101; // переименовано с TRTS в версии 204
+  TRFF = 102;
+}
+
+message BindedTaxation {
+  message BindedTax {
+    required TaxTypeEnum type  = 1;
+    required uint32 percent = 2;
+  }
+
+  required TaxationTypeEnum type  = 1;
+  repeated BindedTax taxes = 2;
+}

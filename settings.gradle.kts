@@ -12,3 +12,5 @@ plugins {
 rootProject.name = "ofd-kt-proto-parent"
 include("proto-v203")
 project(":proto-v203").name = "ofd-kt-proto"
+include("proto-v204")
+project(":proto-v204").name = "ofd-kt-proto-v204"

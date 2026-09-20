@@ -55,3 +55,6 @@ Desktop.ini
 # Codex Rules
 AGENTS.md
 .agents/
+
+# Путь к Android SDK — свой на каждой машине
+local.properties
