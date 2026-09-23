@@ -34,6 +34,6 @@ nmcpAggregation {
     centralPortal {
         username.set(project.findProperty("ossrhUsername")?.toString() ?: System.getenv("OSSRH_USERNAME"))
         password.set(project.findProperty("ossrhPassword")?.toString() ?: System.getenv("OSSRH_PASSWORD"))
-        publishingType.set("USER_MANAGED")
+        publishingType.set("AUTOMATIC")
     }
 }
