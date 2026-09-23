@@ -11,7 +11,12 @@ plugins {
 }
 
 group = "io.github.texport"
-version = "2.0.4-1"
+// Версия протокола; номер сборки через дефис (2.0.4-1, 2.0.4-2, …) назначает
+// выпуск по меткам git и передаёт свойством -PreleaseVersion. Без него — SNAPSHOT.
+val protocol = "2.0.4"
+version = providers.gradleProperty("releaseVersion").orNull
+    ?.takeIf { it.startsWith("$protocol-") }
+    ?: "$protocol-SNAPSHOT"
 
 kotlin {
     jvm()

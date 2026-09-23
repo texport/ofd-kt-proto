@@ -1,35 +1,76 @@
-# Выпуск по метке v<версия>.
+# Выпуск модулей протокола на GitHub и в Maven Central.
 #
-# Метка называет версию одного из модулей: v2.0.3-2 — протокол 2.0.3,
-# v2.0.4-1 — протокол 2.0.4. Модули выпускаются порознь, поэтому выпуск
-# получает файлы только того модуля, чья версия совпала с меткой, и в
-# Maven Central уходит он же.
+# Сам: после зелёного CI на main выпускается каждый модуль, который ещё не
+# выпускался или менялся с последней своей метки. Номер сборки — следующий
+# после последней метки протокола (v2.0.4-1, v2.0.4-2, …); метку ставит
+# сам выпуск. Переменная репозитория AUTO_RELEASE=false это выключает.
 #
-# Порядок: проверки (ci.yml) и сборка файлов → выпуск на GitHub → Maven
-# Central. Упала любая ступень — следующие не запускаются.
+# Руками: метка v<протокол>-<номер> выпускает модуль этого протокола.
+#
+# Порядок: файлы → выпуск на GitHub → Maven Central. Упала ступень —
+# следующие не запускаются. Без секретов Central выгрузка пропускается
+# с уведомлением в сводке запуска.
 name: Release
 
 on:
   push:
     tags: [ 'v*' ]
+  workflow_run:
+    workflows: [ 'CI Build' ]
+    types: [ completed ]
+    branches: [ main ]
 
 permissions:
   contents: read
 
 concurrency:
-  group: release-${{ github.ref }}
+  group: release
   cancel-in-progress: false
 
 jobs:
+  plan:
+    if: >-
+      github.event_name == 'push' ||
+      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
+    runs-on: ubuntu-latest
+    outputs:
+      modules: ${{ steps.plan.outputs.modules }}
+      sha: ${{ steps.plan.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          fetch-depth: 0
+
+      - id: plan
+        env:
+          EVENT: ${{ github.event_name }}
+          REF_NAME: ${{ github.ref_name }}
+          SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+          AUTO_RELEASE: ${{ vars.AUTO_RELEASE || 'true' }}
+        run: |
+          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+          bash .github/scripts/release-plan.sh
+
+  # По ручной метке проверка ещё не шла; после CI на main она уже зелёная.
   checks:
+    needs: plan
+    if: github.event_name == 'push' && needs.plan.outputs.modules != '[]'
     uses: ./.github/workflows/ci.yml
 
   artifacts:
+    needs: [ plan, checks ]
+    if: >-
+      !cancelled() && needs.plan.result == 'success' && needs.plan.outputs.modules != '[]' &&
+      (needs.checks.result == 'success' || needs.checks.result == 'skipped')
     runs-on: macos-latest
-    outputs:
-      version: ${{ steps.module.outputs.version }}
+    strategy:
+      matrix:
+        module: ${{ fromJSON(needs.plan.outputs.modules) }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.plan.outputs.sha }}
 
       - uses: actions/setup-java@v4
         with:
@@ -38,36 +79,17 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
-      # Версия модуля объявлена в его сборке строкой `version = "..."`,
-      # имя модуля — в settings.gradle.kts. Метка без модуля — ошибка,
-      # а не выпуск пустого места.
-      - name: Модуль по метке
-        id: module
-        run: |
-          version="${GITHUB_REF_NAME#v}"
-          dirs=$(grep -lxF "version = \"$version\"" */build.gradle.kts | xargs -n1 dirname || true)
-          if [ "$(printf '%s\n' "$dirs" | grep -c .)" != 1 ]; then
-            echo "::error::Метка $GITHUB_REF_NAME должна совпасть с версией ровно одного модуля, совпала: '${dirs}'"
-            exit 1
-          fi
-          name=$(sed -n "s/^project(\":$dirs\").name = \"\(.*\)\"$/\1/p" settings.gradle.kts)
-          test -n "$name" || { echo "::error::В settings.gradle.kts нет имени модуля $dirs"; exit 1; }
-          {
-            echo "version=$version"
-            echo "dir=$dirs"
-            echo "name=$name"
-          } >> "$GITHUB_OUTPUT"
-
       - name: Собрать jar и aar
         env:
-          NAME: ${{ steps.module.outputs.name }}
-        run: ./gradlew ":$NAME:jvmJar" ":$NAME:bundleAndroidMainAar"
+          NAME: ${{ matrix.module.name }}
+          VERSION: ${{ matrix.module.version }}
+        run: ./gradlew ":$NAME:jvmJar" ":$NAME:bundleAndroidMainAar" -PreleaseVersion="$VERSION"
 
       - name: Сложить файлы выпуска
         env:
-          VERSION: ${{ steps.module.outputs.version }}
-          DIR: ${{ steps.module.outputs.dir }}
-          NAME: ${{ steps.module.outputs.name }}
+          VERSION: ${{ matrix.module.version }}
+          DIR: ${{ matrix.module.dir }}
+          NAME: ${{ matrix.module.name }}
         run: |
           mkdir -p dist
           cp "$DIR/build/libs/$NAME-jvm-$VERSION.jar" dist/
@@ -78,62 +100,64 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: release-files
+          name: release-${{ matrix.module.name }}
           path: dist/*
           if-no-files-found: error
 
   github-release:
-    needs: [ checks, artifacts ]
+    needs: [ plan, artifacts ]
+    if: ${{ !cancelled() && needs.artifacts.result == 'success' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    strategy:
+      matrix:
+        module: ${{ fromJSON(needs.plan.outputs.modules) }}
     steps:
       # Вся история с метками — для заметок о выпуске.
       - uses: actions/checkout@v4
         with:
+          ref: ${{ needs.plan.outputs.sha }}
           fetch-depth: 0
 
       - uses: actions/download-artifact@v4
         with:
-          name: release-files
+          name: release-${{ matrix.module.name }}
           path: dist
 
-      # Заметки: файл RELEASE_NOTES.md в метке, а без него — сообщения
-      # коммитов от предыдущей метки v*.
       - name: Заметки о выпуске
-        run: |
-          if [ -f RELEASE_NOTES.md ]; then
-            cp RELEASE_NOTES.md notes.md
-          else
-            prev=$(git describe --tags --abbrev=0 --match 'v*' "${GITHUB_REF_NAME}^" 2>/dev/null || true)
-            {
-              if [ -n "$prev" ]; then echo "Изменения с $prev:"; else echo "Изменения:"; fi
-              echo
-              git log --no-merges --format='- %s' "${prev:+$prev..}${GITHUB_REF_NAME}"
-            } > notes.md
-          fi
-          cat notes.md
+        env:
+          SHA: ${{ needs.plan.outputs.sha }}
+        run: bash .github/scripts/release-notes.sh && cat notes.md
 
-      # Выпуск мог быть заведён руками до сборки — тогда файлы докладываются
-      # в него поверх прежних, а заметки остаются те, что написаны руками.
+      # Выпуск мог быть заведён руками — тогда файлы докладываются в него
+      # поверх прежних, а заметки остаются те, что написаны руками. Иначе
+      # выпуск создаётся вместе с меткой на выпускаемом коммите.
       - name: Выпуск на GitHub
         env:
           GH_TOKEN: ${{ github.token }}
+          TAG: ${{ matrix.module.tag }}
+          SHA: ${{ needs.plan.outputs.sha }}
+          NAME: ${{ matrix.module.name }}
         run: |
-          if gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            gh release upload "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --clobber dist/*
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$TAG" --repo "$GITHUB_REPOSITORY" --clobber dist/*
           else
-            gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --verify-tag \
-              --title "ofd-kt-proto $GITHUB_REF_NAME" --notes-file notes.md dist/*
+            gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --target "$SHA" \
+              --title "$NAME $TAG" --notes-file notes.md dist/*
           fi
+          echo "- Выпуск на GitHub: $TAG" >> "$GITHUB_STEP_SUMMARY"
 
-  # В Central — только после проверок и созданного выпуска на GitHub.
-  # Без секретов работа падает с перечнем недостающих, выпуск на GitHub
-  # при этом уже создан и не трогается; после заведения секретов её
-  # достаточно перезапустить (Re-run failed jobs).
+  # В Central — только после выпуска на GitHub. Без секретов выгрузка
+  # пропускается с уведомлением, запуск остаётся зелёным; когда секреты
+  # заведены, модуль выгружается сам со следующим выпуском.
   maven-central:
-    needs: [ checks, artifacts, github-release ]
+    needs: [ plan, github-release ]
+    if: ${{ !cancelled() && needs.github-release.result == 'success' }}
     runs-on: macos-latest
+    strategy:
+      matrix:
+        module: ${{ fromJSON(needs.plan.outputs.modules) }}
     env:
       OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
       OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
@@ -142,26 +166,37 @@ jobs:
       SIGNING_KEY_ID: ${{ secrets.SIGNING_KEY_ID }}
     steps:
       - name: Секреты на месте
+        id: secrets
         run: |
           missing=""
           for name in OSSRH_USERNAME OSSRH_PASSWORD SIGNING_KEY SIGNING_PASSWORD; do
             [ -n "${!name}" ] || missing="$missing $name"
           done
           if [ -n "$missing" ]; then
-            echo "::error title=Maven Central::Не заведены секреты репозитория:$missing. Выпуск на GitHub создан и не тронут; заведите секреты и перезапустите эту работу."
-            exit 1
+            message="Maven Central пропущен: не заведены секреты репозитория$missing. Выпуск на GitHub создан."
+            echo "::notice title=Maven Central::$message"
+            echo "- $message" >> "$GITHUB_STEP_SUMMARY"
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - uses: actions/checkout@v4
+      - if: steps.secrets.outputs.present == 'true'
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.plan.outputs.sha }}
 
-      - uses: actions/setup-java@v4
+      - if: steps.secrets.outputs.present == 'true'
+        uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
 
-      - uses: gradle/actions/setup-gradle@v4
+      - if: steps.secrets.outputs.present == 'true'
+        uses: gradle/actions/setup-gradle@v4
 
       - name: Выгрузить в Maven Central
+        if: steps.secrets.outputs.present == 'true'
         env:
-          VERSION: ${{ needs.artifacts.outputs.version }}
+          VERSION: ${{ matrix.module.version }}
         run: ./gradlew publishAggregationToCentralPortal -PreleaseVersion="$VERSION"

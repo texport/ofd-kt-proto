@@ -21,12 +21,12 @@ evaluationDependsOnChildren()
 
 // Протоколы 2.0.3 и 2.0.4 выпускаются порознь, каждый своей версией. Выгрузка
 // в Central версии, которая там уже есть, роняет весь выпуск, поэтому в него
-// попадает только модуль с версией -PreleaseVersion. Без свойства — все модули.
+// попадает только модуль, получивший версию из -PreleaseVersion.
 val releaseVersion = providers.gradleProperty("releaseVersion").orNull
 
 dependencies {
     subprojects
-        .filter { releaseVersion == null || it.version.toString() == releaseVersion }
+        .filter { it.version.toString() == releaseVersion }
         .forEach { add("nmcpAggregation", project(it.path)) }
 }
 
