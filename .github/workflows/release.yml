@@ -1,0 +1,167 @@
+# Выпуск по метке v<версия>.
+#
+# Метка называет версию одного из модулей: v2.0.3-2 — протокол 2.0.3,
+# v2.0.4-1 — протокол 2.0.4. Модули выпускаются порознь, поэтому выпуск
+# получает файлы только того модуля, чья версия совпала с меткой, и в
+# Maven Central уходит он же.
+#
+# Порядок: проверки (ci.yml) и сборка файлов → выпуск на GitHub → Maven
+# Central. Упала любая ступень — следующие не запускаются.
+name: Release
+
+on:
+  push:
+    tags: [ 'v*' ]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  checks:
+    uses: ./.github/workflows/ci.yml
+
+  artifacts:
+    runs-on: macos-latest
+    outputs:
+      version: ${{ steps.module.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      # Версия модуля объявлена в его сборке строкой `version = "..."`,
+      # имя модуля — в settings.gradle.kts. Метка без модуля — ошибка,
+      # а не выпуск пустого места.
+      - name: Модуль по метке
+        id: module
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          dirs=$(grep -lxF "version = \"$version\"" */build.gradle.kts | xargs -n1 dirname || true)
+          if [ "$(printf '%s\n' "$dirs" | grep -c .)" != 1 ]; then
+            echo "::error::Метка $GITHUB_REF_NAME должна совпасть с версией ровно одного модуля, совпала: '${dirs}'"
+            exit 1
+          fi
+          name=$(sed -n "s/^project(\":$dirs\").name = \"\(.*\)\"$/\1/p" settings.gradle.kts)
+          test -n "$name" || { echo "::error::В settings.gradle.kts нет имени модуля $dirs"; exit 1; }
+          {
+            echo "version=$version"
+            echo "dir=$dirs"
+            echo "name=$name"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Собрать jar и aar
+        env:
+          NAME: ${{ steps.module.outputs.name }}
+        run: ./gradlew ":$NAME:jvmJar" ":$NAME:bundleAndroidMainAar"
+
+      - name: Сложить файлы выпуска
+        env:
+          VERSION: ${{ steps.module.outputs.version }}
+          DIR: ${{ steps.module.outputs.dir }}
+          NAME: ${{ steps.module.outputs.name }}
+        run: |
+          mkdir -p dist
+          cp "$DIR/build/libs/$NAME-jvm-$VERSION.jar" dist/
+          aar=$(find "$DIR/build/outputs/aar" -name '*.aar' | head -1)
+          test -s "$aar" || { echo "::error::aar не собрался"; exit 1; }
+          cp "$aar" "dist/$NAME-android-$VERSION.aar"
+          ls -l dist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-files
+          path: dist/*
+          if-no-files-found: error
+
+  github-release:
+    needs: [ checks, artifacts ]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      # Вся история с метками — для заметок о выпуске.
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-files
+          path: dist
+
+      # Заметки: файл RELEASE_NOTES.md в метке, а без него — сообщения
+      # коммитов от предыдущей метки v*.
+      - name: Заметки о выпуске
+        run: |
+          if [ -f RELEASE_NOTES.md ]; then
+            cp RELEASE_NOTES.md notes.md
+          else
+            prev=$(git describe --tags --abbrev=0 --match 'v*' "${GITHUB_REF_NAME}^" 2>/dev/null || true)
+            {
+              if [ -n "$prev" ]; then echo "Изменения с $prev:"; else echo "Изменения:"; fi
+              echo
+              git log --no-merges --format='- %s' "${prev:+$prev..}${GITHUB_REF_NAME}"
+            } > notes.md
+          fi
+          cat notes.md
+
+      # Выпуск мог быть заведён руками до сборки — тогда файлы докладываются
+      # в него поверх прежних, а заметки остаются те, что написаны руками.
+      - name: Выпуск на GitHub
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --clobber dist/*
+          else
+            gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --verify-tag \
+              --title "ofd-kt-proto $GITHUB_REF_NAME" --notes-file notes.md dist/*
+          fi
+
+  # В Central — только после проверок и созданного выпуска на GitHub.
+  # Без секретов работа падает с перечнем недостающих, выпуск на GitHub
+  # при этом уже создан и не трогается; после заведения секретов её
+  # достаточно перезапустить (Re-run failed jobs).
+  maven-central:
+    needs: [ checks, artifacts, github-release ]
+    runs-on: macos-latest
+    env:
+      OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+      OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
+      SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+      SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
+      SIGNING_KEY_ID: ${{ secrets.SIGNING_KEY_ID }}
+    steps:
+      - name: Секреты на месте
+        run: |
+          missing=""
+          for name in OSSRH_USERNAME OSSRH_PASSWORD SIGNING_KEY SIGNING_PASSWORD; do
+            [ -n "${!name}" ] || missing="$missing $name"
+          done
+          if [ -n "$missing" ]; then
+            echo "::error title=Maven Central::Не заведены секреты репозитория:$missing. Выпуск на GitHub создан и не тронут; заведите секреты и перезапустите эту работу."
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Выгрузить в Maven Central
+        env:
+          VERSION: ${{ needs.artifacts.outputs.version }}
+        run: ./gradlew publishAggregationToCentralPortal -PreleaseVersion="$VERSION"
