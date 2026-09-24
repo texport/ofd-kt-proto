@@ -24,6 +24,7 @@ kotlin {
         namespace = "kz.mybrain.ofd.proto.v203"
         compileSdk = libs.versions.androidCompileSdk.get().toInt()
         minSdk = libs.versions.androidMinSdk.get().toInt()
+        withHostTest {}
     }
     iosArm64()
     iosX64()
