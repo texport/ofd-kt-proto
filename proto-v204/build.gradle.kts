@@ -4,10 +4,9 @@ plugins {
     alias(libs.plugins.wire)
     alias(libs.plugins.detekt)
     alias(libs.plugins.kover)
-    // Отдаёт публикации модуля корневой агрегации для Maven Central.
-    alias(libs.plugins.nmcp)
+    // Раскладывает собранную библиотеку по схеме Maven-репозитория: из неё
+    // выпуск на GitHub собирает архив, который подключают как maven(uri(...)).
     `maven-publish`
-    signing
 }
 
 group = "io.github.texport"
@@ -79,60 +78,6 @@ tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
 
 dependencies {
     detektPlugins(libs.detekt.formatting)
-}
-
-publishing {
-    publications.withType<MavenPublication>().configureEach {
-        val javadocJarTask = tasks.register<Jar>("${name}JavadocJar") {
-            description = "Generates Javadoc jar for publication ${this@configureEach.name}"
-            archiveClassifier.set("javadoc")
-            archiveAppendix.set(this@configureEach.name)
-        }
-        artifact(javadocJarTask)
-        pom {
-            name.set("ofd-kt-proto")
-            description.set("Kotlin Multiplatform Protobuf definitions for KazakhTelecom OFD communication")
-            url.set("https://github.com/texport/ofd-kt-proto")
-            
-            licenses {
-                license {
-                    name.set("The Apache License, Version 2.0")
-                    url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
-                }
-            }
-            
-            developers {
-                developer {
-                    id.set("texport")
-                    name.set("Sergey Ivanov")
-                    email.set("ivanov.sergey.ekb@gmail.com")
-                }
-            }
-            
-            scm {
-                connection.set("scm:git:git://github.com/texport/ofd-kt-proto.git")
-                developerConnection.set("scm:git:ssh://github.com:texport/ofd-kt-proto.git")
-                url.set("https://github.com/texport/ofd-kt-proto")
-            }
-        }
-    }
-}
-
-signing {
-    // На CI ключ приходит из секретов репозитория, на машине разработчика —
-    // из его gradle.properties.
-    val signingKey = System.getenv("SIGNING_KEY")
-    val signingPassword = System.getenv("SIGNING_PASSWORD")
-    val signingKeyId = System.getenv("SIGNING_KEY_ID")
-    if (!signingKey.isNullOrEmpty() && !signingPassword.isNullOrEmpty()) {
-        if (signingKeyId.isNullOrEmpty()) {
-            useInMemoryPgpKeys(signingKey, signingPassword)
-        } else {
-            useInMemoryPgpKeys(signingKeyId, signingKey, signingPassword)
-        }
-    }
-    isRequired = false
-    sign(publishing.publications)
 }
 
 kover {

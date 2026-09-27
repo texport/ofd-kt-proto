@@ -1,6 +1,5 @@
 # ofd-kt-proto
 
-[![Maven Central](https://img.shields.io/maven-central/v/io.github.texport/ofd-kt-proto.svg?label=Maven%20Central)](https://central.sonatype.com/artifact/io.github.texport/ofd-kt-proto)
 [![Version](https://img.shields.io/badge/version-2.0.3--2-blue.svg)](https://github.com/texport/ofd-kt-proto/releases)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![CI Build](https://img.shields.io/github/actions/workflow/status/texport/ofd-kt-proto/ci.yml?branch=main&label=CI%20Build)](https://github.com/texport/ofd-kt-proto/actions)
@@ -32,15 +31,34 @@ The current protocol version is **2.0.3** (module `proto-v203`). These proto fil
 
 ### Installation
 
-#### 1. Via Maven Central (Recommended)
-Add the dependency to your shared `commonMain` source set inside `build.gradle.kts`:
+#### 1. From a GitHub release (Recommended)
+The library is not published to Maven Central. Every [GitHub release](https://github.com/texport/ofd-kt-proto/releases) carries the compiled library as a ready-to-use Maven repository: `<module>-maven-<version>.zip`, e.g. `ofd-kt-proto-v204-maven-2.0.4-2.zip`. It contains all targets (JVM, Android, iOS klibs) together with Gradle module metadata, so Gradle picks the right target and resolves the library's own dependencies.
+
+1. Download `<module>-maven-<version>.zip` from the release.
+2. Unzip it into a folder of your project, e.g. `libs/maven`.
+3. Add the folder as a repository in `settings.gradle.kts` (or `build.gradle.kts`):
+
+```kotlin
+dependencyResolutionManagement {
+    repositories {
+        maven(uri("libs/maven"))
+        google()
+        mavenCentral()
+    }
+}
+```
+
+4. Add the dependency to your shared `commonMain` source set inside `build.gradle.kts`:
 
 ```kotlin
 kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                implementation("io.github.texport:ofd-kt-proto:2.0.3-2")
+                // protocol 2.0.3
+                implementation("io.github.texport:ofd-kt-proto:2.0.3-4")
+                // protocol 2.0.4
+                implementation("io.github.texport:ofd-kt-proto-v204:2.0.4-2")
             }
         }
     }
@@ -68,15 +86,34 @@ To build and publish to your local maven repository for testing:
 
 ### Подключение библиотеки
 
-#### 1. Через Maven Central (Рекомендуемый способ)
-Добавьте зависимость в ваш общий набор исходников `commonMain` в `build.gradle.kts`:
+#### 1. Из выпуска на GitHub (Рекомендуемый способ)
+В Maven Central библиотека не публикуется. Каждый [выпуск на GitHub](https://github.com/texport/ofd-kt-proto/releases) несёт собранную библиотеку в виде готового Maven-репозитория: `<модуль>-maven-<версия>.zip`, например `ofd-kt-proto-v204-maven-2.0.4-2.zip`. В нём все цели (JVM, Android, klib для iOS) с метаданными модуля Gradle, поэтому Gradle сам выбирает нужную цель и подтягивает зависимости библиотеки.
+
+1. Скачайте `<модуль>-maven-<версия>.zip` из выпуска.
+2. Распакуйте его в папку проекта, например `libs/maven`.
+3. Добавьте папку в репозитории в `settings.gradle.kts` (или `build.gradle.kts`):
+
+```kotlin
+dependencyResolutionManagement {
+    repositories {
+        maven(uri("libs/maven"))
+        google()
+        mavenCentral()
+    }
+}
+```
+
+4. Добавьте зависимость в ваш общий набор исходников `commonMain` в `build.gradle.kts`:
 
 ```kotlin
 kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                implementation("io.github.texport:ofd-kt-proto:2.0.3-2")
+                // протокол 2.0.3
+                implementation("io.github.texport:ofd-kt-proto:2.0.3-4")
+                // протокол 2.0.4
+                implementation("io.github.texport:ofd-kt-proto-v204:2.0.4-2")
             }
         }
     }
