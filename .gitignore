@@ -58,3 +58,8 @@ AGENTS.md
 
 # Путь к Android SDK — свой на каждой машине
 local.properties
+
+# Личное состояние Xcode и Swift Package Manager на машине разработчика:
+# схемы, открытые окна, выбранные цели — у каждого свои.
+.swiftpm/
+xcuserdata/
